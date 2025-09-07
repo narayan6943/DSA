@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFS & DFS Social Network Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .bfs-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .dfs-btn {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .pause-btn {
+            background: linear-gradient(45deg, #9C27B0, #7B1FA2);
+            color: white;
+        }
+
+        .add-node-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .remove-node-btn {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .regenerate-btn {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .clear-edges-btn {
+            background: linear-gradient(45deg, #607D8B, #455A64);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .node-controls {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+            min-width: 120px;
+        }
+
+        .control-group input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 80px;
+            text-align: center;
+        }
+
+        .control-group input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .graph-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 500px;
+        }
+
+        canvas {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .legend {
+            width: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .legend h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid #333;
+        }
+
+        .start { background-color: #2196F3; }
+        .current { background-color: #FF9800; }
+        .visited { background-color: #4CAF50; }
+        .unvisited { background-color: #9E9E9E; }
+
+        .explanation {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .explanation h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .explanation p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            min-height: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .graph-container {
+                flex-direction: column;
+            }
+            
+            .legend {
+                width: 100%;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BFS & DFS Social Network Simulation</h1>
+        
+        <div class="controls">
+            <button class="bfs-btn" onclick="runBFS()">Run BFS</button>
+            <button class="dfs-btn" onclick="runDFS()">Run DFS</button>
+            <button class="pause-btn" id="pauseBtn" onclick="togglePause()" disabled>Pause</button>
+            <button class="reset-btn" onclick="resetGraph()">Reset</button>
+        </div>
+
+        <div class="node-controls">
+            <div class="control-group">
+                <label for="nodeCount">Number of Nodes:</label>
+                <input type="number" id="nodeCount" min="3" max="15" value="8" onchange="updateNodeCount()">
+                <button class="add-node-btn" onclick="addNode()">Add Node</button>
+                <button class="remove-node-btn" onclick="removeNode()">Remove Node</button>
+            </div>
+            <div class="control-group">
+                <button class="regenerate-btn" onclick="regenerateGraph()">Regenerate Graph</button>
+                <button class="clear-edges-btn" onclick="clearEdges()">Clear All Edges</button>
+            </div>
+        </div>
+
+        <div class="status" id="status">Click a button to start the simulation</div>
+
+        <div class="graph-container">
+            <div class="canvas-wrapper">
+                <canvas id="graphCanvas" width="600" height="500"></canvas>
+            </div>
+            
+            <div class="legend">
+                <h3>Legend</h3>
+                <div class="legend-item">
+                    <div class="color-box start"></div>
+                    <span>Starting Node</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box current"></div>
+                    <span>Currently Visiting</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box visited"></div>
+                    <span>Visited Nodes</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box unvisited"></div>
+                    <span>Unvisited Nodes</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h3>How the Algorithms Work</h3>
+            <p><strong>BFS (Breadth-First Search):</strong> Explores the graph level by level. It visits all direct friends first, then all friends-of-friends, and so on. Like ripples in a pond!</p>
+            <p><strong>DFS (Depth-First Search):</strong> Explores deeply through one chain of friendships before backtracking. It follows one path as far as possible before trying another path.</p>
+        </div>
+    </div>
+
+    <script>
+        class GraphSimulation {
+            constructor() {
+                this.canvas = document.getElementById('graphCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.status = document.getElementById('status');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                
+                this.maxNodes = 15;
+                this.animationSpeed = 600;
+                this.isAnimating = false;
+                this.isPaused = false;
+                this.startNode = 0;
+                this.currentPath = [];
+                this.animationSteps = [];
+                this.currentStepIndex = 0;
+                this.animationInterval = null;
+                this.currentArrow = null;
+                
+                this.nodes = [];
+                this.edges = [];
+                
+                // Initialize with 8 nodes
+                this.initializeGraph(8);
+            }
+            
+            initializeGraph(nodeCount) {
+                this.nodes = [];
+                this.edges = [];
+                
+                // Create nodes with numbers as labels
+                for (let i = 0; i < nodeCount; i++) {
+                    const position = this.calculateNodePosition(i, nodeCount);
+                    this.nodes.push({
+                        id: i,
+                        name: i.toString(),
+                        x: position.x,
+                        y: position.y,
+                        color: '#9E9E9E',
+                        visited: false
+                    });
+                }
+                
+                // Generate some random edges
+                this.generateRandomEdges();
+                this.drawGraph();
+            }
+            
+            calculateNodePosition(index, totalNodes) {
+                const canvasWidth = this.canvas.width - 100;
+                const canvasHeight = this.canvas.height - 100;
+                const centerX = canvasWidth / 2 + 50;
+                const centerY = canvasHeight / 2 + 50;
+                
+                if (totalNodes <= 4) {
+                    // Simple grid for small numbers
+                    const cols = Math.ceil(Math.sqrt(totalNodes));
+                    const rows = Math.ceil(totalNodes / cols);
+                    const col = index % cols;
+                    const row = Math.floor(index / cols);
+                    const spacingX = canvasWidth / (cols + 1);
+                    const spacingY = canvasHeight / (rows + 1);
+                    return {
+                        x: spacingX * (col + 1),
+                        y: spacingY * (row + 1)
+                    };
+                } else {
+                    // Circular layout for larger numbers
+                    const radius = Math.min(canvasWidth, canvasHeight) * 0.3;
+                    const angle = (2 * Math.PI * index) / totalNodes;
+                    return {
+                        x: centerX + radius * Math.cos(angle),
+                        y: centerY + radius * Math.sin(angle)
+                    };
+                }
+            }
+            
+            generateRandomEdges() {
+                const nodeCount = this.nodes.length;
+                const maxEdges = Math.min(nodeCount * 2, nodeCount * (nodeCount - 1) / 2);
+                const edgeCount = Math.floor(maxEdges * 0.4); // 40% connectivity
+                
+                for (let i = 0; i < edgeCount; i++) {
+                    const from = Math.floor(Math.random() * nodeCount);
+                    const to = Math.floor(Math.random() * nodeCount);
+                    
+                    if (from !== to && !this.edgeExists(from, to)) {
+                        this.edges.push([from, to]);
+                    }
+                }
+            }
+            
+            edgeExists(from, to) {
+                return this.edges.some(edge => 
+                    (edge[0] === from && edge[1] === to) || 
+                    (edge[0] === to && edge[1] === from)
+                );
+            }
+            
+            drawGraph() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw edges
+                this.ctx.strokeStyle = '#ddd';
+                this.ctx.lineWidth = 2;
+                this.edges.forEach(([from, to]) => {
+                    const fromNode = this.nodes[from];
+                    const toNode = this.nodes[to];
+                    if (fromNode && toNode) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(fromNode.x, fromNode.y);
+                        this.ctx.lineTo(toNode.x, toNode.y);
+                        this.ctx.stroke();
+                    }
+                });
+                
+                // Draw path arrows
+                this.drawPathArrows();
+                
+                // Draw current arrow
+                this.drawCurrentArrow();
+                
+                // Draw nodes
+                this.nodes.forEach(node => {
+                    // Node circle
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.y, 25, 0, 2 * Math.PI);
+                    this.ctx.fillStyle = node.color;
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = '#333';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+                    
+                    // Node label
+                    this.ctx.fillStyle = '#333';
+                    this.ctx.font = 'bold 14px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(node.name, node.x, node.y);
+                });
+            }
+            
+            drawPathArrows() {
+                if (this.currentPath.length < 2) return;
+                
+                this.ctx.strokeStyle = '#FF5722';
+                this.ctx.lineWidth = 4;
+                this.ctx.setLineDash([8, 4]);
+                
+                for (let i = 0; i < this.currentPath.length - 1; i++) {
+                    const fromNode = this.nodes[this.currentPath[i]];
+                    const toNode = this.nodes[this.currentPath[i + 1]];
+                    
+                    if (fromNode && toNode) {
+                        // Draw arrow line with offset to avoid overlapping with edges
+                        const offset = 30;
+                        const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x);
+                        const perpAngle = angle + Math.PI / 2;
+                        
+                        const offsetX = Math.cos(perpAngle) * offset * 0.3;
+                        const offsetY = Math.sin(perpAngle) * offset * 0.3;
+                        
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(fromNode.x + offsetX, fromNode.y + offsetY);
+                        this.ctx.lineTo(toNode.x + offsetX, toNode.y + offsetY);
+                        this.ctx.stroke();
+                        
+                        // Draw arrowhead
+                        this.drawArrowhead(fromNode.x + offsetX, fromNode.y + offsetY, toNode.x + offsetX, toNode.y + offsetY);
+                    }
+                }
+                
+                this.ctx.setLineDash([]);
+            }
+            
+            drawCurrentArrow() {
+                if (!this.currentArrow) return;
+                
+                const { from, to } = this.currentArrow;
+                const fromNode = this.nodes[from];
+                const toNode = this.nodes[to];
+                
+                if (fromNode && toNode) {
+                    // Draw a pulsing current arrow
+                    this.ctx.strokeStyle = '#FFD700';
+                    this.ctx.lineWidth = 5;
+                    this.ctx.setLineDash([10, 5]);
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(fromNode.x, fromNode.y);
+                    this.ctx.lineTo(toNode.x, toNode.y);
+                    this.ctx.stroke();
+                    
+                    // Draw arrowhead
+                    this.drawArrowhead(fromNode.x, fromNode.y, toNode.x, toNode.y, '#FFD700');
+                    
+                    this.ctx.setLineDash([]);
+                }
+            }
+            
+            drawArrowhead(fromX, fromY, toX, toY, color = '#FF5722') {
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                const arrowLength = 15;
+                const arrowAngle = Math.PI / 6;
+                
+                // Calculate arrowhead points
+                const x1 = toX - arrowLength * Math.cos(angle - arrowAngle);
+                const y1 = toY - arrowLength * Math.sin(angle - arrowAngle);
+                const x2 = toX - arrowLength * Math.cos(angle + arrowAngle);
+                const y2 = toY - arrowLength * Math.sin(angle + arrowAngle);
+                
+                // Draw arrowhead
+                this.ctx.fillStyle = color;
+                this.ctx.beginPath();
+                this.ctx.moveTo(toX, toY);
+                this.ctx.lineTo(x1, y1);
+                this.ctx.lineTo(x2, y2);
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+            
+            updateNodeColor(nodeId, color) {
+                if (this.nodes[nodeId]) {
+                    this.nodes[nodeId].color = color;
+                    this.drawGraph();
+                }
+            }
+            
+            resetGraph() {
+                this.isAnimating = false;
+                this.isPaused = false;
+                this.currentPath = [];
+                this.animationSteps = [];
+                this.currentStepIndex = 0;
+                this.currentArrow = null;
+                this.pauseBtn.disabled = true;
+                this.pauseBtn.textContent = 'Pause';
+                
+                if (this.animationInterval) {
+                    clearInterval(this.animationInterval);
+                    this.animationInterval = null;
+                }
+                
+                this.nodes.forEach(node => {
+                    node.color = '#9E9E9E';
+                    node.visited = false;
+                });
+                this.updateNodeColor(this.startNode, '#2196F3'); // Blue for start
+                this.status.textContent = 'Graph reset. Click a button to start the simulation';
+            }
+            
+            togglePause() {
+                if (!this.isAnimating) return;
+                
+                this.isPaused = !this.isPaused;
+                this.pauseBtn.textContent = this.isPaused ? 'Resume' : 'Pause';
+                
+                if (!this.isPaused) {
+                    this.startAnimation();
+                } else {
+                    if (this.animationInterval) {
+                        clearInterval(this.animationInterval);
+                        this.animationInterval = null;
+                    }
+                }
+            }
+            
+            startAnimation() {
+                if (this.animationInterval) {
+                    clearInterval(this.animationInterval);
+                }
+                
+                this.animationInterval = setInterval(() => {
+                    if (this.isPaused || this.currentStepIndex >= this.animationSteps.length) {
+                        if (this.animationInterval) {
+                            clearInterval(this.animationInterval);
+                            this.animationInterval = null;
+                        }
+                        if (this.currentStepIndex >= this.animationSteps.length) {
+                            this.finishAnimation();
+                        }
+                        return;
+                    }
+                    
+                    const step = this.animationSteps[this.currentStepIndex];
+                    this.executeStep(step);
+                    this.currentStepIndex++;
+                }, this.animationSpeed);
+            }
+            
+            executeStep(step) {
+                if (step.action === 'start') {
+                    this.updateNodeColor(step.node, '#2196F3');
+                    this.status.textContent = `${step.algorithm}: Starting from node ${step.node}`;
+                    this.currentArrow = null;
+                } else if (step.action === 'visit') {
+                    this.updateNodeColor(step.node, '#FF9800');
+                    this.status.textContent = `${step.algorithm}: Visiting node ${step.node}`;
+                    this.currentArrow = null;
+                    // Immediately mark as visited for better visual flow
+                    setTimeout(() => {
+                        this.updateNodeColor(step.node, '#4CAF50');
+                    }, 200);
+                } else if (step.action === 'discover') {
+                    this.updateNodeColor(step.node, '#FF9800');
+                    this.status.textContent = `${step.algorithm}: Discovering node ${step.node}`;
+                    // Show current arrow to the node being discovered
+                    if (step.from !== undefined) {
+                        this.currentArrow = { from: step.from, to: step.node };
+                    }
+                    // Quick flash for discovery
+                    setTimeout(() => {
+                        this.updateNodeColor(step.node, '#9E9E9E');
+                        this.currentArrow = null;
+                    }, 100);
+                } else if (step.action === 'path') {
+                    this.currentPath = step.path;
+                    this.drawGraph();
+                }
+            }
+            
+            finishAnimation() {
+                this.isAnimating = false;
+                this.isPaused = false;
+                this.pauseBtn.disabled = true;
+                this.pauseBtn.textContent = 'Pause';
+                this.status.textContent = 'Animation completed! All reachable nodes visited.';
+            }
+            
+            runBFS() {
+                if (this.isAnimating) return;
+                this.isAnimating = true;
+                this.resetGraph();
+                this.pauseBtn.disabled = false;
+                
+                this.status.textContent = 'Running BFS...';
+                
+                const visited = new Set();
+                const queue = [{ node: this.startNode, path: [this.startNode] }];
+                this.animationSteps = [];
+                
+                visited.add(this.startNode);
+                this.animationSteps.push({ node: this.startNode, action: 'start', algorithm: 'BFS' });
+                this.animationSteps.push({ action: 'path', path: [this.startNode] });
+                
+                while (queue.length > 0) {
+                    const { node: current, path } = queue.shift();
+                    this.animationSteps.push({ node: current, action: 'visit', algorithm: 'BFS' });
+                    this.animationSteps.push({ action: 'path', path: [...path] });
+                    
+                    // Find neighbors
+                    this.edges.forEach(([from, to]) => {
+                        if (from === current && !visited.has(to)) {
+                            visited.add(to);
+                            queue.push({ node: to, path: [...path, to] });
+                            this.animationSteps.push({ node: to, action: 'discover', algorithm: 'BFS', from: current });
+                        } else if (to === current && !visited.has(from)) {
+                            visited.add(from);
+                            queue.push({ node: from, path: [...path, from] });
+                            this.animationSteps.push({ node: from, action: 'discover', algorithm: 'BFS', from: current });
+                        }
+                    });
+                }
+                
+                // Start animation
+                this.currentStepIndex = 0;
+                this.startAnimation();
+            }
+            
+            runDFS() {
+                if (this.isAnimating) return;
+                this.isAnimating = true;
+                this.resetGraph();
+                this.pauseBtn.disabled = false;
+                
+                this.status.textContent = 'Running DFS...';
+                
+                const visited = new Set();
+                const path = [];
+                this.animationSteps = [];
+                
+                this.animationSteps.push({ node: this.startNode, action: 'start', algorithm: 'DFS' });
+                
+                const dfs = (node, fromNode = null) => {
+                    if (visited.has(node)) return;
+                    
+                    visited.add(node);
+                    path.push(node);
+                    this.animationSteps.push({ action: 'path', path: [...path] });
+                    this.animationSteps.push({ node, action: 'visit', algorithm: 'DFS' });
+                    
+                    // Find neighbors
+                    this.edges.forEach(([from, to]) => {
+                        if (from === node && !visited.has(to)) {
+                            this.animationSteps.push({ node: to, action: 'discover', algorithm: 'DFS', from: node });
+                            dfs(to, node);
+                        } else if (to === node && !visited.has(from)) {
+                            this.animationSteps.push({ node: from, action: 'discover', algorithm: 'DFS', from: node });
+                            dfs(from, node);
+                        }
+                    });
+                    
+                    path.pop();
+                    this.animationSteps.push({ action: 'path', path: [...path] });
+                };
+                
+                dfs(this.startNode);
+                
+                // Start animation
+                this.currentStepIndex = 0;
+                this.startAnimation();
+            }
+            
+            addNode() {
+                if (this.nodes.length >= this.maxNodes) {
+                    alert(`Maximum ${this.maxNodes} nodes allowed`);
+                    return;
+                }
+                
+                const newId = this.nodes.length;
+                this.nodes.push({
+                    id: newId,
+                    name: newId.toString(),
+                    x: 0,
+                    y: 0,
+                    color: '#9E9E9E',
+                    visited: false
+                });
+                
+                // Recalculate positions for all nodes
+                this.recalculatePositions();
+                
+                // Add some random edges to the new node
+                this.addRandomEdgesToNode(newId);
+                
+                this.updateNodeCountInput();
+                this.drawGraph();
+                this.status.textContent = `Added node ${newId}. Graph now has ${this.nodes.length} nodes.`;
+            }
+            
+            removeNode() {
+                if (this.nodes.length <= 3) {
+                    alert('Minimum 3 nodes required');
+                    return;
+                }
+                
+                const removedId = this.nodes.length - 1;
+                this.nodes.pop();
+                
+                // Remove all edges connected to the removed node
+                this.edges = this.edges.filter(edge => 
+                    edge[0] !== removedId && edge[1] !== removedId
+                );
+                
+                // Recalculate positions for remaining nodes
+                this.recalculatePositions();
+                
+                this.updateNodeCountInput();
+                this.drawGraph();
+                this.status.textContent = `Removed node ${removedId}. Graph now has ${this.nodes.length} nodes.`;
+            }
+            
+            recalculatePositions() {
+                this.nodes.forEach((node, index) => {
+                    const position = this.calculateNodePosition(index, this.nodes.length);
+                    node.x = position.x;
+                    node.y = position.y;
+                });
+            }
+            
+            addRandomEdgesToNode(nodeId) {
+                const maxNewEdges = Math.min(3, this.nodes.length - 1);
+                let addedEdges = 0;
+                
+                for (let i = 0; i < this.nodes.length && addedEdges < maxNewEdges; i++) {
+                    if (i !== nodeId && !this.edgeExists(nodeId, i) && Math.random() < 0.5) {
+                        this.edges.push([nodeId, i]);
+                        addedEdges++;
+                    }
+                }
+            }
+            
+            updateNodeCountInput() {
+                const input = document.getElementById('nodeCount');
+                if (input) {
+                    input.value = this.nodes.length;
+                }
+            }
+            
+            regenerateGraph() {
+                const nodeCount = this.nodes.length;
+                this.initializeGraph(nodeCount);
+                this.status.textContent = `Regenerated graph with ${nodeCount} nodes.`;
+            }
+            
+            clearEdges() {
+                this.edges = [];
+                this.drawGraph();
+                this.status.textContent = 'All edges cleared.';
+            }
+        }
+        
+        // Initialize the simulation
+        let simulation;
+        window.onload = function() {
+            simulation = new GraphSimulation();
+        };
+        
+        function runBFS() {
+            simulation.runBFS();
+        }
+        
+        function runDFS() {
+            simulation.runDFS();
+        }
+        
+        function resetGraph() {
+            simulation.resetGraph();
+        }
+        
+        function togglePause() {
+            simulation.togglePause();
+        }
+        
+        function addNode() {
+            simulation.addNode();
+        }
+        
+        function removeNode() {
+            simulation.removeNode();
+        }
+        
+        function updateNodeCount() {
+            const input = document.getElementById('nodeCount');
+            const newCount = parseInt(input.value);
+            
+            if (newCount < 3) {
+                input.value = 3;
+                alert('Minimum 3 nodes required');
+                return;
+            }
+            
+            if (newCount > 15) {
+                input.value = 15;
+                alert('Maximum 15 nodes allowed');
+                return;
+            }
+            
+            if (newCount !== simulation.nodes.length) {
+                simulation.initializeGraph(newCount);
+                simulation.status.textContent = `Graph updated to ${newCount} nodes.`;
+            }
+        }
+        
+        function regenerateGraph() {
+            simulation.regenerateGraph();
+        }
+        
+        function clearEdges() {
+            simulation.clearEdges();
+        }
+    </script>
+</body>
+</html>
